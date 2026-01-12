@@ -1,6 +1,8 @@
 #include "../include/xcb_internal.h"
 #include <stdio.h>
 #include <unistd.h>
+#include <xcb/xcb.h>
+#include <xcb/xproto.h>
 
 int xcb_init(LF_App_Context *ctx) {
   ctx->connection = xcb_connect(NULL, NULL);
@@ -30,6 +32,10 @@ void xcb_create_menu_window(LF_App_Context *ctx) {
       XCB_CW_BACK_PIXEL | XCB_CW_OVERRIDE_REDIRECT | XCB_CW_EVENT_MASK, values);
 
   xcb_map_window(ctx->connection, ctx->window);
+  // Grab Keyboard
+  xcb_grab_keyboard(ctx->connection, 1, ctx->window, XCB_CURRENT_TIME,
+                    XCB_GRAB_MODE_ASYNC, XCB_GRAB_MODE_ASYNC);
+
   xcb_flush(ctx->connection);
 }
 
