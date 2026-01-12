@@ -1,13 +1,10 @@
 #include "../include/xcb_internal.h"
-#include <stdio.h>
-#include <unistd.h>
-#include <xcb/xcb.h>
-#include <xcb/xproto.h>
+#include <stdlib.h>
+#include <string.h>
 
 int xcb_init(LF_App_Context *ctx) {
   ctx->connection = xcb_connect(NULL, NULL);
   if (xcb_connection_has_error(ctx->connection)) {
-    fprintf(stderr, "leafy_xmenu: Failed to connect to X server");
     return -1;
   }
 
@@ -15,24 +12,36 @@ int xcb_init(LF_App_Context *ctx) {
   xcb_screen_iterator_t iter = xcb_setup_roots_iterator(setup);
   ctx->screen = iter.data;
 
+  ctx->width = ctx->screen->width_in_pixels;
+  ctx->height = 40; // Modern slim height
+  ctx->running = 1;
+  ctx->input_len = 0;
+  memset(ctx->input_buffer, 0, sizeof(ctx->input_buffer));
+
   return 0;
 }
 
 void xcb_create_menu_window(LF_App_Context *ctx) {
   ctx->window = xcb_generate_id(ctx->connection);
 
-  uint32_t values[] = {ctx->screen->black_pixel, // XCB_CW_BACK_PIXEL
-                       1,                        // XCB_CW_OVERRIDE_REDIRECT
+  uint32_t values[] = {COLOR_BG, // XCB_CW_BACK_PIXEL
+                       1,        // XCB_CW_OVERRIDE_REDIRECT
                        XCB_EVENT_MASK_EXPOSURE | XCB_EVENT_MASK_KEY_PRESS};
+
+  // Center at top of screen with padding
+  int16_t y_pos = 10;
 
   xcb_create_window(
       ctx->connection, XCB_COPY_FROM_PARENT, ctx->window, ctx->screen->root, 0,
-      20, ctx->width, ctx->height, 5, XCB_WINDOW_CLASS_INPUT_OUTPUT,
-      ctx->screen->root_visual,
+      y_pos, ctx->width, ctx->height,
+      0, // No border
+      XCB_WINDOW_CLASS_INPUT_OUTPUT, ctx->screen->root_visual,
       XCB_CW_BACK_PIXEL | XCB_CW_OVERRIDE_REDIRECT | XCB_CW_EVENT_MASK, values);
 
+  // Set window to stay on top
   xcb_map_window(ctx->connection, ctx->window);
-  // Grab Keyboard
+
+  // Grab keyboard
   xcb_grab_keyboard(ctx->connection, 1, ctx->window, XCB_CURRENT_TIME,
                     XCB_GRAB_MODE_ASYNC, XCB_GRAB_MODE_ASYNC);
 
@@ -40,16 +49,50 @@ void xcb_create_menu_window(LF_App_Context *ctx) {
 }
 
 void xcb_menu_graphic_init(LF_App_Context *ctx) {
+  // Create main graphics context
+  ctx->gc = xcb_generate_id(ctx->connection);
+  uint32_t gc_values[] = {COLOR_FG};
+  xcb_create_gc(ctx->connection, ctx->gc, ctx->window, XCB_GC_FOREGROUND,
+                gc_values);
 
-  ctx->graphic = xcb_generate_id(ctx->connection);
+  // Load font - try modern fonts first, fallback to fixed
+  const char *fonts[] = {
+      "-*-dejavu sans mono-medium-r-normal--14-*-*-*-*-*-*-*",
+      "-*-liberation mono-medium-r-normal--14-*-*-*-*-*-*-*",
+      "-*-courier-medium-r-normal--14-*-*-*-*-*-*-*", "fixed"};
 
-  uint32_t gc_values[] = {
-      ctx->screen->white_pixel,
-      ctx->screen->black_pixel,
-  };
-  uint32_t mask = XCB_GC_FOREGROUND | XCB_GC_BACKGROUND;
-  xcb_create_gc(ctx->connection, ctx->graphic, ctx->window, mask, gc_values);
+  ctx->font = xcb_generate_id(ctx->connection);
+  xcb_generic_error_t *error = NULL;
+
+  for (int i = 0; i < 4; i++) {
+    xcb_void_cookie_t cookie = xcb_open_font_checked(
+        ctx->connection, ctx->font, strlen(fonts[i]), fonts[i]);
+    error = xcb_request_check(ctx->connection, cookie);
+    if (!error) {
+      break; // Font loaded successfully
+    }
+    free(error);
+  }
+
+  // Create text graphics context
+  ctx->gc_text = xcb_generate_id(ctx->connection);
+  uint32_t text_gc_values[] = {COLOR_FG, COLOR_BG, ctx->font};
+  uint32_t text_mask = XCB_GC_FOREGROUND | XCB_GC_BACKGROUND | XCB_GC_FONT;
+  xcb_create_gc(ctx->connection, ctx->gc_text, ctx->window, text_mask,
+                text_gc_values);
+
   xcb_flush(ctx->connection);
 }
 
-// TODO: xcb_cleanup
+void xcb_cleanup(LF_App_Context *ctx) {
+  if (ctx->gc_text)
+    xcb_free_gc(ctx->connection, ctx->gc_text);
+  if (ctx->gc)
+    xcb_free_gc(ctx->connection, ctx->gc);
+  if (ctx->font)
+    xcb_close_font(ctx->connection, ctx->font);
+  if (ctx->window)
+    xcb_destroy_window(ctx->connection, ctx->window);
+  if (ctx->connection)
+    xcb_disconnect(ctx->connection);
+}
