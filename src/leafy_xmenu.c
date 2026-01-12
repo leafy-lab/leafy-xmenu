@@ -6,11 +6,14 @@ int main(int argc, char *argv[]) {
   app.width = 1366;
   app.height = 20;
 
-  if (!xcb_init(&app)) {
-    printf("ERROR");
+  if (xcb_init(&app) < 0) {
+    fprintf(stderr, "Failed to init XCB\n");
+    return 1;
   }
 
   xcb_create_menu_window(&app);
+  xcb_menu_graphic_init(&app);
+  xcb_event_loop(&app);
 
   return 0;
 }
