@@ -13,10 +13,14 @@ typedef struct {
   uint16_t width;
   uint16_t height;
   int running;
+  // Graphic
+  xcb_gcontext_t graphic;
+
 } LF_App_Context;
 
 int xcb_init(LF_App_Context *ctx);
 void xcb_create_menu_window(LF_App_Context *ctx);
+void xcb_menu_graphic_init(LF_App_Context *ctx);
 void xcb_cleanup(LF_App_Context *ctx);
 
 #endif // XCB_INTERNAL_H

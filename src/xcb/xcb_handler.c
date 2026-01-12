@@ -6,6 +6,7 @@ int xcb_init(LF_App_Context *ctx) {
   ctx->connection = xcb_connect(NULL, NULL);
   if (xcb_connection_has_error(ctx->connection)) {
     fprintf(stderr, "leafy_xmenu: Failed to connect to X server");
+    return -1;
   }
 
   const xcb_setup_t *setup = xcb_get_setup(ctx->connection);
@@ -30,8 +31,21 @@ void xcb_create_menu_window(LF_App_Context *ctx) {
 
   xcb_map_window(ctx->connection, ctx->window);
   xcb_flush(ctx->connection);
-  
+
   pause(); // TODO: add xcb_event
+}
+
+void xcb_menu_graphic_init(LF_App_Context *ctx) {
+
+  ctx->graphic = xcb_generate_id(ctx->connection);
+
+  uint32_t gc_values[] = {
+      ctx->screen->white_pixel,
+      ctx->screen->black_pixel,
+  };
+  uint32_t mask = XCB_GC_FOREGROUND | XCB_GC_BACKGROUND;
+  xcb_create_gc(ctx->connection, ctx->graphic, ctx->window, mask, gc_values);
+  xcb_flush(ctx->connection);
 }
 
 // TODO: xcb_cleanup
