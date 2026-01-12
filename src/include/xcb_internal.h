@@ -3,6 +3,8 @@
 
 #include <xcb/xcb.h>
 #include <xcb/xproto.h>
+#include <xcb/xcb_keysyms.h>
+#include <X11/keysym.h>
 
 typedef struct {
   xcb_connection_t *connection;
