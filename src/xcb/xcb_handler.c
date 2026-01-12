@@ -42,6 +42,8 @@ void xcb_event_loop(LF_App_Context *ctx) {
     switch (event->response_type & ~0x80) {
     case XCB_EXPOSE:
       // draw
+      draw_input_box(ctx);
+      xcb_flush(ctx->connection);
       break;
     case XCB_KEY_PRESS:
       // handle key press
