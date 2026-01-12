@@ -13,6 +13,11 @@
 #define COLOR_INPUT_BG 0x44475a
 #define COLOR_SHADOW 0x000000
 
+#define MAX_APPS 356
+#define MAX_NAME_LEN 128
+
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
+
 typedef struct {
   xcb_connection_t *connection;
   xcb_screen_t *screen;
@@ -25,6 +30,12 @@ typedef struct {
   xcb_font_t font;
   char input_buffer[256];
   int input_len;
+
+  char app_names[MAX_APPS][MAX_NAME_LEN];
+  int app_count;
+  char filtered_names[MAX_APPS][MAX_NAME_LEN];
+  int filtered_count;
+  int scroll_index;
 } LF_App_Context;
 
 int xcb_init(LF_App_Context *ctx);
