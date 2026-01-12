@@ -33,5 +33,6 @@ void xcb_menu_graphic_init(LF_App_Context *ctx);
 void xcb_event_loop(LF_App_Context *ctx);
 void xcb_cleanup(LF_App_Context *ctx);
 void draw_ui(LF_App_Context *ctx);
-
+void draw_rect(LF_App_Context *ctx, int16_t x, int16_t y, uint16_t width,
+               uint16_t height, uint32_t color, const char *app_name);
 #endif // XCB_INTERNAL_H

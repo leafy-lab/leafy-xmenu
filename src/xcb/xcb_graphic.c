@@ -1,6 +1,37 @@
 #include "../include/xcb_internal.h"
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+
+void draw_rect(LF_App_Context *ctx, int16_t x, int16_t y, uint16_t width,
+               uint16_t height, uint32_t color, const char *app_name) {
+  uint16_t border = 2;
+  xcb_change_gc(ctx->connection, ctx->gc, XCB_GC_FOREGROUND, &color);
+  xcb_rectangle_t outer_rect = {x, y, width, height};
+  xcb_poly_rectangle(ctx->connection, ctx->window, ctx->gc, 1, &outer_rect);
+
+  uint32_t inner_color = 0x282a36;
+  xcb_change_gc(ctx->connection, ctx->gc, XCB_GC_FOREGROUND, &inner_color);
+  xcb_rectangle_t inner_rect = {(int16_t)(x + border), (int16_t)(y + border),
+                                (uint16_t)(width - 2 * border),
+                                (uint16_t)(height - 2 * border)};
+  xcb_poly_fill_rectangle(ctx->connection, ctx->window, ctx->gc, 1,
+                          &inner_rect);
+
+  if (app_name) {
+    uint32_t text_color = 0xf8f8f2;
+    xcb_change_gc(ctx->connection, ctx->gc_text, XCB_GC_FOREGROUND,
+                  &text_color);
+
+    int tx = x + (width / 2) - (strlen(app_name) * 4);
+    int ty = y + (height / 2) + 5;
+
+    xcb_image_text_8(ctx->connection, strlen(app_name), ctx->window,
+                     ctx->gc_text, tx, ty, app_name);
+  }
+
+  xcb_flush(ctx->connection);
+}
 
 static void draw_rounded_rect(LF_App_Context *ctx, int16_t x, int16_t y,
                               uint16_t w, uint16_t h, uint32_t color,
