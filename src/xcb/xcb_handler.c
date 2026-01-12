@@ -32,8 +32,6 @@ void xcb_create_menu_window(LF_App_Context *ctx) {
 
   xcb_map_window(ctx->connection, ctx->window);
   xcb_flush(ctx->connection);
-
-  pause(); // TODO: add xcb_event
 }
 
 void xcb_event_loop(LF_App_Context *ctx) {
