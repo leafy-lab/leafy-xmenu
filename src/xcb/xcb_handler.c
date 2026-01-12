@@ -12,8 +12,8 @@ int xcb_init(LF_App_Context *ctx) {
   xcb_screen_iterator_t iter = xcb_setup_roots_iterator(setup);
   ctx->screen = iter.data;
 
-  ctx->width = ctx->screen->width_in_pixels;
-  ctx->height = 40; // Modern slim height
+  ctx->width = 600;
+  ctx->height = 60;
   ctx->running = 1;
   ctx->input_len = 0;
   memset(ctx->input_buffer, 0, sizeof(ctx->input_buffer));
@@ -28,17 +28,15 @@ void xcb_create_menu_window(LF_App_Context *ctx) {
                        1,        // XCB_CW_OVERRIDE_REDIRECT
                        XCB_EVENT_MASK_EXPOSURE | XCB_EVENT_MASK_KEY_PRESS};
 
-  // Center at top of screen with padding
-  int16_t y_pos = 10;
-
+  int16_t x_pos = (ctx->screen->width_in_pixels - ctx->width) / 2;
+  int16_t y_pos = ctx->screen->height_in_pixels / 4;
   xcb_create_window(
-      ctx->connection, XCB_COPY_FROM_PARENT, ctx->window, ctx->screen->root, 0,
-      y_pos, ctx->width, ctx->height,
-      0, // No border
+      ctx->connection, XCB_COPY_FROM_PARENT, ctx->window, ctx->screen->root,
+      x_pos, y_pos, ctx->width, ctx->height,
+      2, // border
       XCB_WINDOW_CLASS_INPUT_OUTPUT, ctx->screen->root_visual,
       XCB_CW_BACK_PIXEL | XCB_CW_OVERRIDE_REDIRECT | XCB_CW_EVENT_MASK, values);
 
-  // Set window to stay on top
   xcb_map_window(ctx->connection, ctx->window);
 
   // Grab keyboard
@@ -55,7 +53,7 @@ void xcb_menu_graphic_init(LF_App_Context *ctx) {
   xcb_create_gc(ctx->connection, ctx->gc, ctx->window, XCB_GC_FOREGROUND,
                 gc_values);
 
-  // Load font - try modern fonts first, fallback to fixed
+  // Load font fallback to fixed
   const char *fonts[] = {
       "-*-dejavu sans mono-medium-r-normal--14-*-*-*-*-*-*-*",
       "-*-liberation mono-medium-r-normal--14-*-*-*-*-*-*-*",
@@ -69,12 +67,11 @@ void xcb_menu_graphic_init(LF_App_Context *ctx) {
         ctx->connection, ctx->font, strlen(fonts[i]), fonts[i]);
     error = xcb_request_check(ctx->connection, cookie);
     if (!error) {
-      break; // Font loaded successfully
+      break;
     }
     free(error);
   }
 
-  // Create text graphics context
   ctx->gc_text = xcb_generate_id(ctx->connection);
   uint32_t text_gc_values[] = {COLOR_FG, COLOR_BG, ctx->font};
   uint32_t text_mask = XCB_GC_FOREGROUND | XCB_GC_BACKGROUND | XCB_GC_FONT;
