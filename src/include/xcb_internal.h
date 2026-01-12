@@ -6,11 +6,12 @@
 #include <xcb/xcb_keysyms.h>
 #include <xcb/xproto.h>
 
-#define COLOR_BG 0x1e1e2e
-#define COLOR_FG 0xcdd6f4
-#define COLOR_SELECTED 0x89b4fa
-#define COLOR_BORDER 0x45475a
-#define COLOR_INPUT_BG 0x313244
+#define COLOR_BG 0x282a36
+#define COLOR_FG 0xf8f8f2
+#define COLOR_SELECTED 0xbd93f9
+#define COLOR_BORDER 0x6272a4
+#define COLOR_INPUT_BG 0x44475a
+#define COLOR_SHADOW 0x000000
 
 typedef struct {
   xcb_connection_t *connection;
