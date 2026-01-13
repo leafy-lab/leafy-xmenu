@@ -46,6 +46,7 @@ void xcb_cleanup(LF_App_Context *ctx);
 void draw_ui(LF_App_Context *ctx);
 void draw_rect(LF_App_Context *ctx, int16_t x, int16_t y, uint16_t width,
                uint16_t height, uint32_t color, const char *app_name);
+void refresh_screen(LF_App_Context *ctx);
 
 void add_app_list(LF_App_Context *ctx, const char *appname);
 void populate_apps(LF_App_Context *ctx);

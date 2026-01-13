@@ -84,7 +84,7 @@ void draw_ui(LF_App_Context *ctx) {
   draw_rounded_rect(ctx, border, border, ctx->width - 2 * border,
                     ctx->height - 2 * border, COLOR_BG, radius);
 
-  int16_t text_y = (ctx->height / 2) + 7; // +7 for proper baseline
+  int16_t text_y = (ctx->height / 2) - 17; // +7 for proper baseline
 
   const char *prompt = "->";
   draw_text(ctx, padding, text_y, prompt, COLOR_SELECTED);
@@ -113,10 +113,26 @@ void draw_ui(LF_App_Context *ctx) {
     }
 
     int16_t cursor_h = 20;
-    int16_t cursor_y = (ctx->height - cursor_h) / 2;
+    int16_t cursor_y = (ctx->height - cursor_h) / 2 - 20;
     xcb_change_gc(ctx->connection, ctx->gc, XCB_GC_FOREGROUND, &color);
     xcb_rectangle_t cursor = {text_x + 2, cursor_y, 2, cursor_h};
     xcb_poly_fill_rectangle(ctx->connection, ctx->window, ctx->gc, 1, &cursor);
+  }
+
+  xcb_flush(ctx->connection);
+}
+
+void refresh_screen(LF_App_Context *ctx) {
+  draw_ui(ctx);
+
+  if (ctx->scroll_index < ctx->app_count) {
+    draw_rect(ctx, 20, 70, ctx->width - 40, 30, COLOR_SELECTED,
+              ctx->app_names[ctx->scroll_index]);
+  }
+
+  if (ctx->scroll_index + 1 < ctx->app_count) {
+    draw_rect(ctx, 20, 105, ctx->width - 40, 30, 0x44475a,
+              ctx->app_names[ctx->scroll_index + 1]);
   }
 
   xcb_flush(ctx->connection);

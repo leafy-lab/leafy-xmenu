@@ -9,12 +9,12 @@ void xcb_event_loop(LF_App_Context *ctx) {
   xcb_key_symbols_t *syms = xcb_key_symbols_alloc(ctx->connection);
 
   // Initial draw
-  draw_ui(ctx);
+  refresh_screen(ctx);
 
   while ((event = xcb_wait_for_event(ctx->connection))) {
     switch (event->response_type & ~0x80) {
     case XCB_EXPOSE:
-      draw_ui(ctx);
+      refresh_screen(ctx);
       break;
 
     case XCB_KEY_PRESS: {
@@ -37,7 +37,7 @@ void xcb_event_loop(LF_App_Context *ctx) {
       } else if (sym == XK_BackSpace) {
         if (ctx->input_len > 0) {
           ctx->input_buffer[--ctx->input_len] = '\0';
-          draw_ui(ctx);
+          refresh_screen(ctx);
         }
       } else {
         // Handle regular character input
@@ -57,7 +57,7 @@ void xcb_event_loop(LF_App_Context *ctx) {
           if (ctx->input_len < 255 && ch != 0) {
             ctx->input_buffer[ctx->input_len++] = ch;
             ctx->input_buffer[ctx->input_len] = '\0';
-            draw_ui(ctx);
+            refresh_screen(ctx);
           }
         }
       }
