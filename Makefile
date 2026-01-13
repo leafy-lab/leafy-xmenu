@@ -4,7 +4,7 @@ LIBS    = -lxcb -lxcb-keysyms
 
 SRC = \
     src/leafy_xmenu.c \
-		src/leafy_utils/c \
+		src/leafy_utils.c \
     src/xcb/xcb_graphic.c \
     src/xcb/xcb_event.c \
     src/xcb/xcb_handler.c

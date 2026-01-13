@@ -13,7 +13,7 @@ int xcb_init(LF_App_Context *ctx) {
   ctx->screen = iter.data;
 
   ctx->width = 600;
-  ctx->height = 60;
+  ctx->height = 150;
   ctx->running = 1;
   ctx->input_len = 0;
   memset(ctx->input_buffer, 0, sizeof(ctx->input_buffer));
