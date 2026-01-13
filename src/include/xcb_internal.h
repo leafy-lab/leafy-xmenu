@@ -32,9 +32,13 @@ typedef struct {
   int input_len;
 
   char app_names[MAX_APPS][MAX_NAME_LEN];
+  char app_execs[MAX_APPS][MAX_NAME_LEN];
   int app_count;
+
   char filtered_names[MAX_APPS][MAX_NAME_LEN];
+  char filtered_execs[MAX_APPS][MAX_NAME_LEN];
   int filtered_count;
+
   int scroll_index;
 } LF_App_Context;
 
@@ -48,7 +52,7 @@ void draw_rect(LF_App_Context *ctx, int16_t x, int16_t y, uint16_t width,
                uint16_t height, uint32_t color, const char *app_name);
 void refresh_screen(LF_App_Context *ctx);
 
-void add_app_list(LF_App_Context *ctx, const char *appname);
+void add_app_list(LF_App_Context *ctx, const char *appname, const char *exec);
 void populate_apps(LF_App_Context *ctx);
 
 #endif // XCB_INTERNAL_H

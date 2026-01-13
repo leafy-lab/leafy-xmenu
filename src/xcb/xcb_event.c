@@ -1,7 +1,8 @@
 #include "../include/xcb_internal.h"
 
-#include <stdio.h>
 #include <stdlib.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 void xcb_event_loop(LF_App_Context *ctx) {
   xcb_generic_event_t *event;
@@ -25,11 +26,17 @@ void xcb_event_loop(LF_App_Context *ctx) {
         xcb_key_symbols_free(syms);
         return;
       } else if (sym == XK_Return) {
-        if (ctx->app_count > 0) {
-          int selected_idx = ctx->scroll_index;
-          const char *selected_app = ctx->app_names[selected_idx];
-          printf("Selected: %s\n", selected_app);
+        if (ctx->filtered_count > 0) {
+          const char *cmd = ctx->filtered_execs[ctx->scroll_index];
+          if (fork() == 0) {
+            // Child process
+            setsid(); // Detach from terminal
+            char *args[] = {"/bin/sh", "-c", (char *)cmd, NULL};
+            execvp(args[0], args);
+            exit(0);
+          }
 
+          // Close menu
           free(event);
           xcb_key_symbols_free(syms);
           return;
