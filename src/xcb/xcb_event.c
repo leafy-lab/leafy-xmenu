@@ -1,6 +1,5 @@
 #include "../include/xcb_internal.h"
 
-#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -26,34 +25,41 @@ void xcb_event_loop(LF_App_Context *ctx) {
         xcb_key_symbols_free(syms);
         return;
       } else if (sym == XK_Return) {
-        // Handle selection
-        if (ctx->input_len > 0) {
-          // Process input (print for now)
-          printf("Selected: %s\n", ctx->input_buffer);
+        if (ctx->app_count > 0) {
+          int selected_idx = ctx->scroll_index;
+          const char *selected_app = ctx->app_names[selected_idx];
+          printf("Selected: %s\n", selected_app);
+
+          free(event);
+          xcb_key_symbols_free(syms);
+          return;
         }
-        free(event);
-        xcb_key_symbols_free(syms);
-        return;
       } else if (sym == XK_BackSpace) {
         if (ctx->input_len > 0) {
           ctx->input_buffer[--ctx->input_len] = '\0';
           refresh_screen(ctx);
         }
+      } else if (sym == XK_Down) {
+        if (ctx->app_count > 2) {
+          if (ctx->scroll_index < ctx->app_count - 2) {
+            ctx->scroll_index++;
+            refresh_screen(ctx);
+          }
+        }
+      } else if (sym == XK_Up) {
+        if (ctx->scroll_index > 0) {
+          ctx->scroll_index--;
+          refresh_screen(ctx);
+        }
       } else {
-        // Handle regular character input
         char ch = 0;
-
-        // Simple ASCII conversion
         if (sym >= XK_space && sym <= XK_asciitilde) {
           ch = (char)sym;
-
-          // Handle shift for uppercase
           if (kp->state & XCB_MOD_MASK_SHIFT) {
             if (ch >= 'a' && ch <= 'z') {
-              ch = toupper(ch);
+              ch -= 32;
             }
           }
-
           if (ctx->input_len < 255 && ch != 0) {
             ctx->input_buffer[ctx->input_len++] = ch;
             ctx->input_buffer[ctx->input_len] = '\0';
@@ -63,12 +69,10 @@ void xcb_event_loop(LF_App_Context *ctx) {
       }
       break;
     }
-
     default:
       break;
     }
     free(event);
   }
-
   xcb_key_symbols_free(syms);
 }
