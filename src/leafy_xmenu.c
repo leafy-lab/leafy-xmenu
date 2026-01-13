@@ -11,9 +11,15 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 
+  app.app_count = 0;
+  app.scroll_index = 0;
+
+  populate_apps(&app);
+
   xcb_create_menu_window(&app);
   xcb_menu_graphic_init(&app);
-  xcb_event_loop(&app);
+  refresh_screen(&app);
 
+  xcb_event_loop(&app);
   return 0;
 }
